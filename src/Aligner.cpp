@@ -20,6 +20,12 @@
 #include "AlignmentSelection.h"
 #include "DiploidHeuristic.h"
 
+#define VTUNE_ANALYSIS
+
+#ifdef VTUNE_ANALYSIS
+#include <ittnotify.h>
+#endif
+
 struct Seeder
 {
 	enum Mode
@@ -447,6 +453,10 @@ void filterOutWrongHaplotypeSeeds(std::vector<SeedHit>& seeds, const GraphAligne
 	}
 }
 
+/*
+ * Allow me to add some commentary, this is the function that performs complete
+ * alignment: seeding->clustering->extension
+ */
 void runComponentMappings(const AlignmentGraph& alignmentGraph, const DiploidHeuristicSplitter& diploidHeuristic, moodycamel::ConcurrentQueue<std::shared_ptr<FastQ>>& readFastqsQueue, std::atomic<bool>& readStreamingFinished, int threadnum, const Seeder& seeder, AlignerParams params, moodycamel::ConcurrentQueue<std::string*>& GAMOut, moodycamel::ConcurrentQueue<std::string*>& JSONOut, moodycamel::ConcurrentQueue<std::string*>& GAFOut, moodycamel::ConcurrentQueue<std::string*>& correctedOut, moodycamel::ConcurrentQueue<std::string*>& correctedClippedOut, moodycamel::ConcurrentQueue<std::string*>& deallocqueue, AlignmentStats& stats)
 {
 	moodycamel::ProducerToken GAMToken { GAMOut };
@@ -556,7 +566,12 @@ void runComponentMappings(const AlignmentGraph& alignmentGraph, const DiploidHeu
 				stats.seedsFound += seeds.size();
 				stats.readsWithASeed += 1;
 				stats.bpInReadsWithASeed += fastq->sequence.size();
+        //zkn there are two versions. this is the one I think we use because it
+        //includes seeding
 				auto alntimeStart = std::chrono::system_clock::now();
+#ifdef VTUNE_ANALYSIS
+        __itt_resume();
+#endif
 				std::string paddedSequence = fastq->sequence;
 				while (paddedSequence.size() % 64 != 0)
 				{
@@ -565,6 +580,9 @@ void runComponentMappings(const AlignmentGraph& alignmentGraph, const DiploidHeu
 				alignments = AlignClusters(alignmentGraph, fastq->seq_id, paddedSequence, params.alignmentBandwidth, params.maxCellsPerSlice, !params.verboseMode, processedSeeds, reusableState, params.preciseClippingIdentityCutoff, params.Xdropcutoff, params.multimapScoreFraction, params.clipAmbiguousEnds, params.maxTraceCount);
 				AlignmentSelection::RemoveDuplicateAlignments(alignmentGraph, alignments.alignments);
 				AlignmentSelection::AddMappingQualities(alignments.alignments);
+#ifdef VTUNE_ANALYSIS
+        __itt_pause();
+#endif
 				auto alntimeEnd = std::chrono::system_clock::now();
 				alntimems = std::chrono::duration_cast<std::chrono::milliseconds>(alntimeEnd - alntimeStart).count();
 				if (params.useDiploidHeuristic)
