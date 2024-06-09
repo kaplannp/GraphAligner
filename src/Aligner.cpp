@@ -20,12 +20,7 @@
 #include "AlignmentSelection.h"
 #include "DiploidHeuristic.h"
 
-
-//#define VTUNE_ANALYSIS
-
-#ifdef VTUNE_ANALYSIS
-#include <ittnotify.h>
-#endif
+#include "vtuneConfiguration.h"
 
 struct Seeder
 {
@@ -571,7 +566,9 @@ void runComponentMappings(const AlignmentGraph& alignmentGraph, const DiploidHeu
         //includes seeding
 				auto alntimeStart = std::chrono::system_clock::now();
 #ifdef VTUNE_ANALYSIS
+  #if (ROI == "EXTENSION")
         __itt_resume();
+  #endif
 #endif
 				std::string paddedSequence = fastq->sequence;
 				while (paddedSequence.size() % 64 != 0)
@@ -582,7 +579,9 @@ void runComponentMappings(const AlignmentGraph& alignmentGraph, const DiploidHeu
 				AlignmentSelection::RemoveDuplicateAlignments(alignmentGraph, alignments.alignments);
 				AlignmentSelection::AddMappingQualities(alignments.alignments);
 #ifdef VTUNE_ANALYSIS
+  #if (ROI == "EXTENSION")
         __itt_pause();
+  #endif
 #endif
 				auto alntimeEnd = std::chrono::system_clock::now();
 				alntimems = std::chrono::duration_cast<std::chrono::milliseconds>(alntimeEnd - alntimeStart).count();
@@ -997,6 +996,11 @@ void alignReads(AlignerParams params)
 	std::thread correctedWriterThread { [file=params.outputCorrectedFile, &outputCorrected, &deallocAlns, &allThreadsDone, &correctedWriteDone, verboseMode=params.verboseMode, uncompressed=!params.compressCorrected]() { if (file != "") consumeBytesAndWrite(file, outputCorrected, deallocAlns, allThreadsDone, correctedWriteDone, verboseMode, uncompressed); else correctedWriteDone = true; } };
 	std::thread correctedClippedWriterThread { [file=params.outputCorrectedClippedFile, &outputCorrectedClipped, &deallocAlns, &allThreadsDone, &correctedClippedWriteDone, verboseMode=params.verboseMode, uncompressed=!params.compressClipped]() { if (file != "") consumeBytesAndWrite(file, outputCorrectedClipped, deallocAlns, allThreadsDone, correctedClippedWriteDone, verboseMode, uncompressed); else correctedClippedWriteDone = true; } };
 
+#ifdef VTUNE_ANALYSIS
+  #if (ROI == "ALIGNMENT")
+        __itt_resume();
+  #endif
+#endif
 	for (size_t i = 0; i < params.numThreads; i++)
 	{
 		threads.emplace_back([&alignmentGraph, &readFastqsQueue, &readStreamingFinished, i, seeder, params, &outputGAM, &outputJSON, &outputGAF, &outputCorrected, &outputCorrectedClipped, &deallocAlns, &stats, &diploidHeuristic]() { runComponentMappings(alignmentGraph, diploidHeuristic, readFastqsQueue, readStreamingFinished, i, seeder, params, outputGAM, outputJSON, outputGAF, outputCorrected, outputCorrectedClipped, deallocAlns, stats); });
@@ -1006,6 +1010,11 @@ void alignReads(AlignerParams params)
 	{
 		threads[i].join();
 	}
+#ifdef VTUNE_ANALYSIS
+  #if (ROI == "ALIGNMENT")
+        __itt_pause();
+  #endif
+#endif
 	assertSetNoRead("Postprocessing");
 
 	allThreadsDone = true;
