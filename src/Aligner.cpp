@@ -20,7 +20,8 @@
 #include "AlignmentSelection.h"
 #include "DiploidHeuristic.h"
 
-#define VTUNE_ANALYSIS
+
+//#define VTUNE_ANALYSIS
 
 #ifdef VTUNE_ANALYSIS
 #include <ittnotify.h>
