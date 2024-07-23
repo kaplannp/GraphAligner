@@ -13,3 +13,6 @@
 [submodule "MEMfinder"]
 	path = MEMfinder
 	url = https://github.com/kaplannp/MEMfinder.git
+[submodule "Boost"]
+	path = include/boost
+  url = https://github.com/boostorg/boost.git
