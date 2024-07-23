@@ -54,8 +54,7 @@ private:
 	  ar & firstOfIntermediates;
     //TODO
     ar & nodeSequences;
-	//std::vector<AmbiguousChunkSequence> ambiguousNodeSequences;
-
+    ar & ambiguousNodeSequences;
   }
 
 public:
