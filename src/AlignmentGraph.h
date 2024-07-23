@@ -12,8 +12,52 @@
 #include "ThreadReadAssertion.h"
 #include "DNAString.h"
 
+//boost libraries
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <fstream>
+
 class AlignmentGraph
 {
+private:
+  /* zkn boost serialization stuff */
+  friend class boost::serialization::access;
+  /*
+   * Not actually serializing any members, just want the template params
+   */
+  template<class Archive>
+  void serialize(Archive& ar, const unsigned int version){
+	  ar & SPLIT_NODE_SIZE;
+	  ar & BP_IN_CHUNK;
+    ar &CHUNKS_IN_NODE;
+    ar & bpSize;
+    ar & firstAmbiguous;
+    ar & finalized;
+    ar & allNodeNamesAreNumbers;
+      // bigraph
+    ar & originalNodeName;
+    ar & bigraphIntermediateList;
+    ar & originalNodeSize;
+    ar & chainNumber;
+    ar & chainApproxPos;
+    ar & reverse;
+      // intermediates
+    ar & partOfStronglyConnectedComponent;
+    ar & componentNumber;
+    ar & lastDinodeLength;
+    ar & firstDinodeOffset;
+    ar & intermediateBigraphNodeIDs;
+    ar & intermediateDinodesStart;
+    ar & intermediateInEdges; // during construction points to intermediates, after points to dinodes
+    ar & intermediateOutEdges; // during construction points to intermediates, after points to dinodes
+    // digraph
+	  ar & firstOfIntermediates;
+    //TODO
+    ar & nodeSequences;
+	//std::vector<AmbiguousChunkSequence> ambiguousNodeSequences;
+
+  }
+
 public:
 	class EdgeIterator : public std::iterator<std::input_iterator_tag, size_t>
 	{
@@ -53,6 +97,11 @@ public:
 
 	struct NodeChunkSequence
 	{
+    //boost serialization
+    template<class Archive>
+    void serialize(Archive& ar, const unsigned int version){
+      ar & s;
+    }
 		size_t& operator[](size_t pos)
 		{
 			return s[pos];
@@ -62,6 +111,7 @@ public:
 			return s[pos];
 		}
 		size_t s[CHUNKS_IN_NODE];
+
 	};
 	struct AmbiguousChunkSequence
 	{
@@ -95,6 +145,15 @@ public:
 		size_t T;
 		size_t C;
 		size_t G;
+
+    //boost serialization
+    template<class Archive>
+    void serialize(Archive& ar, const unsigned int version){
+      ar & A;
+      ar & T;
+      ar & C;
+      ar & G;
+    }
 	};
 
 	struct MatrixPosition

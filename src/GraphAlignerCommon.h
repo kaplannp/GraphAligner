@@ -104,6 +104,7 @@ public:
 		{
 		}
 		const LengthType alignmentBandwidth;
+    //zkn This is the only attribute that requires more complicated pickling
 		const AlignmentGraph& graph;
 		const size_t maxCellsPerSlice;
 		const bool quietMode;

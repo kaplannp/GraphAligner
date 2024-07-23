@@ -84,13 +84,16 @@ public:
     ////This appears to be reinitialized per read
     //  const DPSlice& initialSlice,
 		//auto initialSlice = BV::getInitialEmptySlice();
+    
+    //bw seq
+		//std::string revSequence = CommonUtils::ReverseComplement(sequence);
 
     //  size_t numSlices,
     ////Word is always uint64_t, so WordSize is 64
 		//size_t numSlices = (sequence.size() + WordConfiguration<Word>::WordSize - 1) / WordConfiguration<Word>::WordSize;
 
     ////I believe this is reused across all reads
-    ////UIt looks scary, but you can access the alignment fraph from params
+    ////It looks scary, but you can access the alignment fraph from params
     //  AlignerGraphsizedState& reusableState,
 	  //GraphAlignerCommon<size_t, int64_t, uint64_t>::AlignerGraphsizedState reusableState { alignmentGraph, params.alignmentBandwidth };
 
@@ -103,7 +106,12 @@ public:
     //     const std::vector<std::tuple<size_t, int, int>>& forbiddenNodes
 
 
-	std::vector<OnewayTrace> getMultiseedTraces(const std::string_view& sequence, const std::string_view& bwSequence, const std::vector<ProcessedSeedHit>& seedHits, AlignerGraphsizedState& reusableState, std::vector<ScoreType>& sliceMaxScores) const
+	std::vector<OnewayTrace> getMultiseedTraces(
+      const std::string_view& sequence,
+      const std::string_view& bwSequence,
+      const std::vector<ProcessedSeedHit>& seedHits,
+      AlignerGraphsizedState& reusableState,
+      std::vector<ScoreType>& sliceMaxScores) const
 	{
 		std::vector<OnewayTrace> traces = getMultiseedTracesOneWay(sequence, seedHits, reusableState, sliceMaxScores, reusableState.bigraphNodeForbiddenSpans);
 		std::vector<OnewayTrace> revTraces;
