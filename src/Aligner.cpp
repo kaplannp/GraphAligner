@@ -566,7 +566,7 @@ void runComponentMappings(const AlignmentGraph& alignmentGraph, const DiploidHeu
         //includes seeding
 				auto alntimeStart = std::chrono::system_clock::now();
 #ifdef VTUNE_ANALYSIS
-  #if (ROI == "EXTENSION")
+  #if (ROI == 2)
         __itt_resume();
   #endif
 #endif
@@ -579,7 +579,7 @@ void runComponentMappings(const AlignmentGraph& alignmentGraph, const DiploidHeu
 				AlignmentSelection::RemoveDuplicateAlignments(alignmentGraph, alignments.alignments);
 				AlignmentSelection::AddMappingQualities(alignments.alignments);
 #ifdef VTUNE_ANALYSIS
-  #if (ROI == "EXTENSION")
+  #if (ROI == 2)
         __itt_pause();
   #endif
 #endif
@@ -997,10 +997,11 @@ void alignReads(AlignerParams params)
 	std::thread correctedClippedWriterThread { [file=params.outputCorrectedClippedFile, &outputCorrectedClipped, &deallocAlns, &allThreadsDone, &correctedClippedWriteDone, verboseMode=params.verboseMode, uncompressed=!params.compressClipped]() { if (file != "") consumeBytesAndWrite(file, outputCorrectedClipped, deallocAlns, allThreadsDone, correctedClippedWriteDone, verboseMode, uncompressed); else correctedClippedWriteDone = true; } };
 
 #ifdef VTUNE_ANALYSIS
-  #if (ROI == "ALIGNMENT")
+  #if (ROI == 1)
         __itt_resume();
   #endif
 #endif
+	auto timeStart = std::chrono::system_clock::now();
 	for (size_t i = 0; i < params.numThreads; i++)
 	{
 		threads.emplace_back([&alignmentGraph, &readFastqsQueue, &readStreamingFinished, i, seeder, params, &outputGAM, &outputJSON, &outputGAF, &outputCorrected, &outputCorrectedClipped, &deallocAlns, &stats, &diploidHeuristic]() { runComponentMappings(alignmentGraph, diploidHeuristic, readFastqsQueue, readStreamingFinished, i, seeder, params, outputGAM, outputJSON, outputGAF, outputCorrected, outputCorrectedClipped, deallocAlns, stats); });
@@ -1010,8 +1011,11 @@ void alignReads(AlignerParams params)
 	{
 		threads[i].join();
 	}
+	auto timeEnd = std::chrono::system_clock::now();
+	size_t time = std::chrono::duration_cast<std::chrono::milliseconds>(timeEnd - timeStart).count();
+  std::cerr << "zkn all alignment took " << time << "ms" << std::endl;
 #ifdef VTUNE_ANALYSIS
-  #if (ROI == "ALIGNMENT")
+  #if (ROI == 1)
         __itt_pause();
   #endif
 #endif

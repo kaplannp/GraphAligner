@@ -584,7 +584,7 @@ private:
 			result.nodesProcessed++;
 #endif
 			if (result.cellsProcessed > params.maxCellsPerSlice) break;
-		}
+		} //end while
 
 #ifdef EXTRACORRECTNESSASSERTIONS
 		checkNodeBoundaryCorrectness<HasVectorMap, PreviousHasVectorMap>(currentSlice, previousSlice, sequence, j, currentMinScoreAtEndRow + bandwidth, previousQuitScore, hasSeedStart, seedstartSlice, fakeSlice);
@@ -873,6 +873,13 @@ private:
 		}
 	}
 
+  /*
+   * zkn
+   * This function aligns an entire read. It takes as an input the entire
+   * cluster, and extends each seed in the cluster individually, starting with
+   * the best candidate seeds. Seeds which are overlapped by previously computed
+   * alignments are dropped to avoid redundant work
+   */
 	DPTable getMultiseedSlices(const std::string_view& sequence, const DPSlice& initialSlice, size_t numSlices, AlignerGraphsizedState& reusableState, const std::vector<ProcessedSeedHit>& seedHits, const std::vector<ScoreType>& sliceMaxScores, const std::vector<std::tuple<size_t, int, int>>& forbiddenNodes) const
 	{
 		assert(reusableState.componentQueue.valid());

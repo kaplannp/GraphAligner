@@ -1238,6 +1238,12 @@ public:
 		return calculateNodeInner<true>(params, i, slice, EqV, previousSlice, incoming, [&previousBand](size_t pos) { return previousBand[pos]; }, nodeChunks, extraSlice, [](const WordSlice& slice){}, seqOffset);
 	}
 
+  /*
+   * zkn
+   * It is interesting to note that in this function they use params.graph to
+   * find neighbors. This suggests that this deep in the call tree, they are not
+   * using a subgraph as in vg. I believe they use the graph object instead.
+   */
 	template <bool AllowEarlyLeave, typename NodeChunkType, typename WordsliceCallback, typename ExistenceCheckFunction>
 #ifdef NDEBUG
 	__attribute__((always_inline))
