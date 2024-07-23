@@ -17,11 +17,6 @@
 #include "GraphAlignerCommon.h"
 #include "ArrayPriorityQueue.h"
 
-////boost libraries
-//#include <archive/text_oarchive.hpp>
-//#include <archive/text_iarchive.hpp>
-//#include <fstream>
-
 template <typename LengthType, typename ScoreType, typename Word>
 class GraphAlignerBitvectorBanded
 {
@@ -70,39 +65,6 @@ public:
    * evertyhing above seems to be looking more at just extracting the alignment
    * information from the traces
    */
-
-    /* zkn
-     * Trying out boost serialization
-     */
-    //{
-    //  std::ofstream ofs("well_try");
-    //  boost::archive::text_oarchive oa(ofs);
-    //  oa << this;
-    //}
-    //  const std::string_view& sequence, //input
-
-    ////This appears to be reinitialized per read
-    //  const DPSlice& initialSlice,
-		//auto initialSlice = BV::getInitialEmptySlice();
-
-    //  size_t numSlices,
-    ////Word is always uint64_t, so WordSize is 64
-		//size_t numSlices = (sequence.size() + WordConfiguration<Word>::WordSize - 1) / WordConfiguration<Word>::WordSize;
-
-    ////I believe this is reused across all reads
-    ////UIt looks scary, but you can access the alignment fraph from params
-    //  AlignerGraphsizedState& reusableState,
-	  //GraphAlignerCommon<size_t, int64_t, uint64_t>::AlignerGraphsizedState reusableState { alignmentGraph, params.alignmentBandwidth };
-
-    //  const std::vector<ProcessedSeedHit>& seedHits, //input 
-
-    //  const std::vector<ScoreType>& sliceMaxScores,
-		//std::vector<ScoreType> sliceMaxScores;
-		//sliceMaxScores.resize(sequence.size() / WordConfiguration<Word>::WordSize + 2, 0);
-
-    //     const std::vector<std::tuple<size_t, int, int>>& forbiddenNodes
-
-
 	std::vector<OnewayTrace> getMultiseedTraces(const std::string_view& sequence, const std::string_view& bwSequence, const std::vector<ProcessedSeedHit>& seedHits, AlignerGraphsizedState& reusableState, std::vector<ScoreType>& sliceMaxScores) const
 	{
 		std::vector<OnewayTrace> traces = getMultiseedTracesOneWay(sequence, seedHits, reusableState, sliceMaxScores, reusableState.bigraphNodeForbiddenSpans);
