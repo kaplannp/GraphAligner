@@ -17,9 +17,23 @@
 #include "GraphAlignerCommon.h"
 #include "ArrayPriorityQueue.h"
 
+////boost libraries
+//#include <archive/text_oarchive.hpp>
+//#include <archive/text_iarchive.hpp>
+//#include <fstream>
+
 template <typename LengthType, typename ScoreType, typename Word>
 class GraphAlignerBitvectorBanded
 {
+  /*boost serialization stuff*/
+private:
+  friend class boost::serialization::access;
+  /*
+   * Not actually serializing any members, just want the template params
+   */
+  template<class Archive>
+  void serialize(Archive& ar, const unsigned int version){}
+
 private:
 	using BV = GraphAlignerBitvectorCommon<LengthType, ScoreType, Word>;
 	using Common = GraphAlignerCommon<LengthType, ScoreType, Word>;
@@ -42,6 +56,53 @@ public:
 	{
 	}
 
+
+  /*
+   * zkn
+   * This function starts by getting a bunch of forward traces for the seed
+   * hits, then it takes each forward trace and produces a backward trace from
+   * the place where the forward trace started (this seems to be the equivalent
+   * of a left extension, then right extension). The question is, why do we only
+   * return the left extensions at the end? Don't we still want the right
+   * extensions?
+   * We're gonna take this one though. It appears to be the first that operates
+   * on a cluster. I'm confused as to exactly how the guts of it work, but
+   * evertyhing above seems to be looking more at just extracting the alignment
+   * information from the traces
+   */
+
+    /* zkn
+     * Trying out boost serialization
+     */
+    //{
+    //  std::ofstream ofs("well_try");
+    //  boost::archive::text_oarchive oa(ofs);
+    //  oa << this;
+    //}
+    //  const std::string_view& sequence, //input
+
+    ////This appears to be reinitialized per read
+    //  const DPSlice& initialSlice,
+		//auto initialSlice = BV::getInitialEmptySlice();
+
+    //  size_t numSlices,
+    ////Word is always uint64_t, so WordSize is 64
+		//size_t numSlices = (sequence.size() + WordConfiguration<Word>::WordSize - 1) / WordConfiguration<Word>::WordSize;
+
+    ////I believe this is reused across all reads
+    ////UIt looks scary, but you can access the alignment fraph from params
+    //  AlignerGraphsizedState& reusableState,
+	  //GraphAlignerCommon<size_t, int64_t, uint64_t>::AlignerGraphsizedState reusableState { alignmentGraph, params.alignmentBandwidth };
+
+    //  const std::vector<ProcessedSeedHit>& seedHits, //input 
+
+    //  const std::vector<ScoreType>& sliceMaxScores,
+		//std::vector<ScoreType> sliceMaxScores;
+		//sliceMaxScores.resize(sequence.size() / WordConfiguration<Word>::WordSize + 2, 0);
+
+    //     const std::vector<std::tuple<size_t, int, int>>& forbiddenNodes
+
+
 	std::vector<OnewayTrace> getMultiseedTraces(const std::string_view& sequence, const std::string_view& bwSequence, const std::vector<ProcessedSeedHit>& seedHits, AlignerGraphsizedState& reusableState, std::vector<ScoreType>& sliceMaxScores) const
 	{
 		std::vector<OnewayTrace> traces = getMultiseedTracesOneWay(sequence, seedHits, reusableState, sliceMaxScores, reusableState.bigraphNodeForbiddenSpans);
@@ -58,10 +119,14 @@ public:
 			assert(params.graph.GetReverseDigraphPosition(reversePos.first, reversePos.second).first == fwTrace.trace[0].DPposition.node);
 			assert(params.graph.GetReverseDigraphPosition(reversePos.first, reversePos.second).second == fwTrace.trace[0].DPposition.nodeOffset);
 
+      //zkn you are flipping the read and aligning to a reversed graph, so this
+      //part here is about finding the location in the flipped read from which
+      //to start aligning
 			assert(fwTrace.trace[0].DPposition.seqPos < sequence.size());
 			size_t seqPos = sequence.size() - 1 - fwTrace.trace[0].DPposition.seqPos;
 			assert(seqPos < sequence.size());
 
+      //zkn this is a singleton vector. Seems kinda hackish
 			std::vector<ProcessedSeedHit> fakeBwSeeds;
 			fakeBwSeeds.emplace_back(seqPos, reversePos.first);
 
@@ -73,6 +138,8 @@ public:
 				revTraces.emplace_back(std::move(bwTraces[i]));
 			}
 		}
+    //zkn why do we just return the reverse traces, shouldn't we return a
+    //concatenation of reverse and forward traces
 		return revTraces;
 	}
 
@@ -880,8 +947,16 @@ private:
    * the best candidate seeds. Seeds which are overlapped by previously computed
    * alignments are dropped to avoid redundant work
    */
-	DPTable getMultiseedSlices(const std::string_view& sequence, const DPSlice& initialSlice, size_t numSlices, AlignerGraphsizedState& reusableState, const std::vector<ProcessedSeedHit>& seedHits, const std::vector<ScoreType>& sliceMaxScores, const std::vector<std::tuple<size_t, int, int>>& forbiddenNodes) const
+	DPTable getMultiseedSlices(
+      const std::string_view& sequence,
+      const DPSlice& initialSlice,
+      size_t numSlices,
+      AlignerGraphsizedState& reusableState,
+      const std::vector<ProcessedSeedHit>& seedHits,
+      const std::vector<ScoreType>& sliceMaxScores,
+      const std::vector<std::tuple<size_t, int, int>>& forbiddenNodes) const
 	{
+
 		assert(reusableState.componentQueue.valid());
 		assert(initialSlice.j == (size_t)-WordConfiguration<Word>::WordSize);
 		assert(initialSlice.j + numSlices * WordConfiguration<Word>::WordSize <= sequence.size() + WordConfiguration<Word>::WordSize);

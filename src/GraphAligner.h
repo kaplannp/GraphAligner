@@ -718,6 +718,11 @@ private:
 		}
 	}
 
+  /*
+   * zkn
+   * As far as I can tell, this is the first cluster level alignment function.
+   * i.e. first alignment function on the stack that operates on a cluster
+   */
 	std::vector<AlignmentResult::AlignmentItem> getAlignmentsFromMultiseeds(const std::string& sequence, const std::string& revSequence, const std::vector<ProcessedSeedHit>& seedHits, AlignerGraphsizedState& reusableState, std::vector<ScoreType>& sliceMaxScores) const
 	{
 		auto traces = getMultiseedTraces(sequence, revSequence, seedHits, reusableState, sliceMaxScores);
