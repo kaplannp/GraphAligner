@@ -17,11 +17,6 @@
 #include "GraphAlignerCommon.h"
 #include "ArrayPriorityQueue.h"
 
-////boost libraries
-//#include <archive/text_oarchive.hpp>
-//#include <archive/text_iarchive.hpp>
-//#include <fstream>
-
 template <typename LengthType, typename ScoreType, typename Word>
 class GraphAlignerBitvectorBanded
 {

@@ -12,7 +12,7 @@
 	url = https://github.com/maickrau/BBHash.git
 [submodule "MEMfinder"]
 	path = MEMfinder
-	url = https://github.com/kaplannp/MEMfinder.git
+	url = git@github.com:kaplannp/MEMfinder.git
 [submodule "json"]
 	path = include/json
 	url = https://github.com/nlohmann/json.git
