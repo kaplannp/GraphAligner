@@ -15,6 +15,7 @@
 //boost libraries
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
+#include <boost/serialization/vector.hpp>
 #include <fstream>
 
 class AlignmentGraph
@@ -52,7 +53,6 @@ private:
     ar & intermediateOutEdges; // during construction points to intermediates, after points to dinodes
     // digraph
 	  ar & firstOfIntermediates;
-    //TODO
     ar & nodeSequences;
     ar & ambiguousNodeSequences;
   }

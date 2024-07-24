@@ -15,6 +15,10 @@
 #include "GraphAlignerGAFAlignment.h"
 #include "GraphAlignerBitvectorBanded.h"
 
+#include "nlohmann/json.hpp"
+
+using nJson = nlohmann::json;
+
 template <typename LengthType, typename ScoreType, typename Word>
 class GraphAligner
 {
@@ -479,9 +483,55 @@ private:
 		return bvAligner.getBacktraceFullStart(seq, params.Xdropcutoff, reusableState.bigraphNodeForbiddenSpans, reusableState);
 	}
 
+  //zkn this is the function that calls the ROI, so this is the place where we
+  //dump the important arguments
 	std::vector<OnewayTrace> getMultiseedTraces(const std::string& sequence, const std::string& revSequence, const std::vector<ProcessedSeedHit>& seedHits, AlignerGraphsizedState& reusableState, std::vector<ScoreType>& sliceMaxScores) const
 	{
-		return bvAligner.getMultiseedTraces(sequence, revSequence, seedHits, reusableState, sliceMaxScores);
+    const std::string dumpDir = "Dump";
+    const std::string inputDir = dumpDir + "/Inputs";
+    const std::string outDir = dumpDir + "/Out";
+    static int dumpIndex = 0;
+    std::string stager ="";
+    if (dumpIndex == 0){
+      bool failed = false;
+      //initialize the directories if this is the first time in the function
+      stager = "rm -rf " + dumpDir;
+      failed != std::system(stager.c_str());
+      stager = "mkdir " + dumpDir;
+      failed != std::system(stager.c_str());
+      stager = "mkdir " + inputDir;
+      failed != std::system(stager.c_str());
+      stager = "mkdir " + outDir;
+      failed != std::system(stager.c_str());
+      if (failed){
+        std::cerr << "initializing dump directory failed! Aborting" << std::endl;
+        exit(1);
+      }
+      //dump params
+      std::ofstream graphDumpFile(inputDir+"/params.bin");
+      boost::archive::text_oarchive graphDumpArchive(graphDumpFile);
+      graphDumpArchive << bvAligner.params;//bvAligner.getParams();
+    }
+    //dump inputs (reads)
+    static std::ofstream readDumpFile(inputDir+"/reads.txt");
+    //output (traces)
+    std::ofstream traceDumpFile(outDir+"/traces.txt");
+
+    readDumpFile << dumpIndex << ": " << sequence << std::endl;
+
+    std::vector<OnewayTrace> trace = bvAligner.getMultiseedTraces(sequence, revSequence, seedHits, reusableState, sliceMaxScores);
+
+    nlohmann::json traceJson;
+    traceJson["index"] = dumpIndex;
+    traceJson["traces"] = nJson::array();
+    for(OnewayTrace& t : trace){
+      traceJson["traces"].push_back(t.toJson());
+    }
+    std::string traceStr = traceJson.dump(2);
+    traceDumpFile << traceStr << std::endl;
+
+    dumpIndex++;
+		return trace;
 	}
 
 	// Trace getTwoDirectionalTrace(const std::string& sequence, const std::string& revSequence, SeedHit seedHit, AlignerGraphsizedState& reusableState) const

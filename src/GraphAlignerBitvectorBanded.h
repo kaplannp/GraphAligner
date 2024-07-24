@@ -25,15 +25,6 @@
 template <typename LengthType, typename ScoreType, typename Word>
 class GraphAlignerBitvectorBanded
 {
-  /*boost serialization stuff*/
-private:
-  friend class boost::serialization::access;
-  /*
-   * Not actually serializing any members, just want the template params
-   */
-  template<class Archive>
-  void serialize(Archive& ar, const unsigned int version){}
-
 private:
 	using BV = GraphAlignerBitvectorCommon<LengthType, ScoreType, Word>;
 	using Common = GraphAlignerCommon<LengthType, ScoreType, Word>;
@@ -48,7 +39,14 @@ private:
 	using DPSlice = typename BV::DPSlice;
 	using DPTable = typename BV::DPTable;
 	using NodeCalculationResult = typename BV::NodeCalculationResult;
+
+public:
+  /* 
+   * zkn we make this public only so we can dump it to a file later. It's
+   * private in all other contexts
+   */
 	const Params& params;
+
 public:
 
 	GraphAlignerBitvectorBanded(const Params& params) :

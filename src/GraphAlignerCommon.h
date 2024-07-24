@@ -8,6 +8,10 @@
 #include "NodeSlice.h"
 #include "WordSlice.h"
 
+#include "nlohmann/json.hpp"
+
+using nJson = nlohmann::json;
+
 template <typename LengthType, typename ScoreType, typename Word>
 class GraphAlignerCommon
 {
@@ -89,6 +93,24 @@ public:
 	using MatrixPosition = AlignmentGraph::MatrixPosition;
 	class Params
 	{
+  private:
+    /* zkn boost serialization stuff */
+    friend class boost::serialization::access;
+    /*
+     * Not actually serializing any members, just want the template params
+     */
+    template<class Archive>
+    void serialize(Archive& ar, const unsigned int version){
+      ar & graph;
+      ar & maxCellsPerSlice;
+      ar & quietMode;
+      ar & XscoreErrorCost;
+      ar & Xdropcutoff;
+      ar & multimapScoreFraction;
+      ar & clipAmbiguousEnds;
+      ar & maxTraceCount;
+      ar & discardCigar;
+    }
 	public:
 		Params(LengthType alignmentBandwidth, const AlignmentGraph& graph, size_t maxCellsPerSlice, bool quietMode, double preciseClippingIdentityCutoff, ScoreType Xdropcutoff, double multimapScoreFraction, ScoreType clipAmbiguousEnds, size_t maxTraceCount) :
 		alignmentBandwidth(alignmentBandwidth),
@@ -169,6 +191,36 @@ public:
 			result.score = std::numeric_limits<ScoreType>::max();
 			return result;
 		}
+    /*
+     * zkn
+     * to string method for oneway trace. This is used withing GraphAligner.h in
+     * order to dump the output to a file. We use json to represent the string,
+     * but it is not a complete serialization of the file. Niether does it
+     * conform to any standardized genomics file formats (sam, gaf, ...).
+     * We include the following data structures.
+     * {
+     *   "score"      : alignment score,
+     *   "seqChars"   : sequence chars,
+     *   "nodeId"     : node that the char matched to,
+     *   "nodeOffset" : offset of the node it matched to,
+     *   "graphChars" : corresponding characters in the graph
+     * }
+     */
+    nJson toJson(){
+      nJson o;
+      o["score"]      = score;
+      o["seqChars"]   = nJson::array();
+      o["nodeId"]     = nJson::array();
+      o["nodeOffset"]     = nJson::array();
+      o["graphChars"] = nJson::array();
+      for(TraceItem& t : trace){
+        o["seqChars"].push_back(t.sequenceCharacter);
+        o["nodeId"].push_back(t.DPposition.node);
+        o["nodeOffset"].push_back(t.DPposition.nodeOffset);
+        o["graphChars"].push_back(t.graphCharacter);
+      }
+      return o;
+    }
 		bool failed() const
 		{
 			return score == std::numeric_limits<ScoreType>::max();
