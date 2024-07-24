@@ -72,6 +72,10 @@ public:
 			hasSeedStart.resize(graph.NodeSize(), false);
 			allowedBigraphNodesThisSlice.resize(graph.BigraphNodeCount(), true);
 		}
+    //zkn It appears this pretty much sets it back to the way it was when it was
+    //first constructed, which means it's safe to use in the kernel for loop
+    //before each read. I believe this is usually done outside the kernel, which
+    //is why it must be called manually before
 		void clear()
 		{
 			componentQueue.clear();

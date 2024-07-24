@@ -8,6 +8,10 @@
 #include "GraphAlignerCommon.h"
 #include "AlignmentGraph.h"
 
+#include "nlohmann/json.hpp"
+
+using nJson = nlohmann::json;
+
 using ReusableStateType = GraphAlignerCommon<size_t, int64_t, uint64_t>::AlignerGraphsizedState;
 
 class SeedHit
@@ -47,6 +51,16 @@ public:
 	alignmentGraphNodeId(alignmentGraphNodeId)
 	{
 	}
+  /*
+   * zkn
+   * convert to json for serialization
+   */
+  nJson toJson() const{
+    nJson o;
+    o["seqPos"] = seqPos;
+    o["alignmentGraphNodeId"] = alignmentGraphNodeId;
+    return o;
+  }
 	size_t seqPos;
 	size_t alignmentGraphNodeId;
 };

@@ -514,14 +514,28 @@ private:
     }
     //dump inputs (reads)
     static std::ofstream readDumpFile(inputDir+"/reads.txt");
+    //dump inputs (clusters)
+    static std::ofstream clusterDumpFile(inputDir+"/clusters.json");
     //output (traces)
-    std::ofstream traceDumpFile(outDir+"/traces.txt");
+    static std::ofstream traceDumpFile(outDir+"/traces.txt");
 
-    readDumpFile << dumpIndex << ": " << sequence << std::endl;
-
+    //get the trace (only actual computation line in this function)
     std::vector<OnewayTrace> trace = bvAligner.getMultiseedTraces(sequence, revSequence, seedHits, reusableState, sliceMaxScores);
 
-    nlohmann::json traceJson;
+    //dump read inputs
+    readDumpFile << dumpIndex << ": " << sequence << std::endl;
+    //dump seed hits
+    nJson clusterJson;
+    clusterJson["index"] = dumpIndex;
+    clusterJson["seedHits"] = nJson::array();
+    for (const ProcessedSeedHit& hit : seedHits){
+      clusterJson["seedHits"].push_back(hit.toJson());
+    }
+    //2 is for indent width. pretty printing
+    clusterDumpFile << clusterJson.dump(2) << std::endl;
+
+    //dump traces to file
+    nJson traceJson;
     traceJson["index"] = dumpIndex;
     traceJson["traces"] = nJson::array();
     for(OnewayTrace& t : trace){
