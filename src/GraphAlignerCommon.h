@@ -194,7 +194,7 @@ public:
 
       // Members without const
       LengthType alignmentBandwidth;
-      const AlignmentGraph& graph;
+      AlignmentGraph graph;
       size_t maxCellsPerSlice;
       bool quietMode;
       ScoreType XscoreErrorCost;
