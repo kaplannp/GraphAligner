@@ -96,6 +96,8 @@ public:
 	};
 	using MatrixPosition = AlignmentGraph::MatrixPosition;
 
+  //fwd declaration
+  class SerializableParams;
 	class Params
 	{
 	public:
@@ -112,6 +114,20 @@ public:
 		maxTraceCount(maxTraceCount)
 		{
 		}
+    // Constructor that takes a SerializableParams object
+    Params(const SerializableParams& params) :
+        alignmentBandwidth(params.alignmentBandwidth),
+        graph(params.graph),
+        maxCellsPerSlice(params.maxCellsPerSlice),
+        quietMode(params.quietMode),
+        XscoreErrorCost(params.XscoreErrorCost),
+        Xdropcutoff(params.Xdropcutoff),
+        multimapScoreFraction(params.multimapScoreFraction),
+        clipAmbiguousEnds(params.clipAmbiguousEnds),
+        discardCigar(params.discardCigar),
+        maxTraceCount(params.maxTraceCount)
+    {
+    }
 		const LengthType alignmentBandwidth;
     //zkn This is the only attribute that requires more complicated pickling
 		const AlignmentGraph& graph;
