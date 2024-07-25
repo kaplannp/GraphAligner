@@ -510,7 +510,8 @@ private:
       //dump params
       std::ofstream graphDumpFile(inputDir+"/params.bin");
       boost::archive::text_oarchive graphDumpArchive(graphDumpFile);
-      graphDumpArchive << bvAligner.params;//bvAligner.getParams();
+      typename Common::SerializableParams p(bvAligner.params);
+      graphDumpArchive << p;//bvAligner.params;//bvAligner.getParams();
     }
     //dump inputs (reads)
     static std::ofstream readDumpFile(inputDir+"/reads.txt");

@@ -95,26 +95,9 @@ public:
 		std::vector<std::tuple<size_t, int, int>> bigraphNodeForbiddenSpans;
 	};
 	using MatrixPosition = AlignmentGraph::MatrixPosition;
+
 	class Params
 	{
-  private:
-    /* zkn boost serialization stuff */
-    friend class boost::serialization::access;
-    /*
-     * Not actually serializing any members, just want the template params
-     */
-    template<class Archive>
-    void serialize(Archive& ar, const unsigned int version){
-      ar & graph;
-      ar & maxCellsPerSlice;
-      ar & quietMode;
-      ar & XscoreErrorCost;
-      ar & Xdropcutoff;
-      ar & multimapScoreFraction;
-      ar & clipAmbiguousEnds;
-      ar & maxTraceCount;
-      ar & discardCigar;
-    }
 	public:
 		Params(LengthType alignmentBandwidth, const AlignmentGraph& graph, size_t maxCellsPerSlice, bool quietMode, double preciseClippingIdentityCutoff, ScoreType Xdropcutoff, double multimapScoreFraction, ScoreType clipAmbiguousEnds, size_t maxTraceCount) :
 		alignmentBandwidth(alignmentBandwidth),
@@ -141,6 +124,71 @@ public:
 		const size_t maxTraceCount;
 		bool discardCigar;
 	};
+
+  class SerializableParams {
+  private:
+    /* zkn boost serialization stuff */
+    friend class boost::serialization::access;
+    /*
+     * Not actually serializing any members, just want the template params
+     */
+    template<class Archive>
+    void serialize(Archive& ar, const unsigned int version){
+		  ar & alignmentBandwidth;
+      ar & graph;
+      ar & maxCellsPerSlice;
+      ar & quietMode;
+      ar & XscoreErrorCost;
+      ar & Xdropcutoff;
+      ar & multimapScoreFraction;
+      ar & clipAmbiguousEnds;
+      ar & maxTraceCount;
+      ar & discardCigar;
+    }
+  public:
+      // Constructor that takes a Params object
+      SerializableParams(const Params& params) :
+          alignmentBandwidth(params.alignmentBandwidth),
+          graph(params.graph),
+          maxCellsPerSlice(params.maxCellsPerSlice),
+          quietMode(params.quietMode),
+          XscoreErrorCost(params.XscoreErrorCost),
+          Xdropcutoff(params.Xdropcutoff),
+          multimapScoreFraction(params.multimapScoreFraction),
+          clipAmbiguousEnds(params.clipAmbiguousEnds),
+          discardCigar(params.discardCigar),
+          maxTraceCount(params.maxTraceCount)
+      {
+      }
+      //default
+      SerializableParams() :
+          alignmentBandwidth(0),      
+          graph(AlignmentGraph()),    
+          maxCellsPerSlice(0),        
+          quietMode(false),           
+          XscoreErrorCost(0),         
+          Xdropcutoff(0),             
+          multimapScoreFraction(0.0), 
+          clipAmbiguousEnds(0),       
+          maxTraceCount(0),           
+          discardCigar(false)         
+      {
+      }
+
+      // Members without const
+      LengthType alignmentBandwidth;
+      const AlignmentGraph& graph;
+      size_t maxCellsPerSlice;
+      bool quietMode;
+      ScoreType XscoreErrorCost;
+      ScoreType Xdropcutoff;
+      double multimapScoreFraction;
+      ScoreType clipAmbiguousEnds;
+      size_t maxTraceCount;
+      bool discardCigar;
+  };
+
+
 	struct TraceItem
 	{
 		TraceItem() :
