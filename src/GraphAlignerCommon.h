@@ -7,6 +7,7 @@
 #include "ComponentPriorityQueue.h"
 #include "NodeSlice.h"
 #include "WordSlice.h"
+#include "vg.pb.h"
 
 #include "nlohmann/json.hpp"
 
