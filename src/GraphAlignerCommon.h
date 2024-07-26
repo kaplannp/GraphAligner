@@ -152,7 +152,7 @@ public:
     template<class Archive>
     void serialize(Archive& ar, const unsigned int version){
 		  ar & alignmentBandwidth;
-      ar & graph;
+      //ar & graph;
       ar & maxCellsPerSlice;
       ar & quietMode;
       ar & XscoreErrorCost;

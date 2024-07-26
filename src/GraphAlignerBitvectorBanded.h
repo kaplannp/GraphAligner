@@ -724,29 +724,16 @@ private:
 				reusableState.previousBand[node.first] = true;
 			}
 		}
-#ifndef NDEBUG
-		debugLastRowMinScore = 0;
-#endif
 		DPSlice lastSlice = initialSlice;
 		result.slices.push_back(initialSlice);
 		ScoreType bestXScore = initialSlice.maxExactEndposScore;
 		assert(bestXScore != std::numeric_limits<ScoreType>::min());
-#ifndef NDEBUG
-		volatile size_t debugLastProcessedSlice;
-		// we want to keep this variable for debugging purposes
-		// useless self-assignment to prevent unused variable compilation warning
-		debugLastProcessedSlice = debugLastProcessedSlice;
-#endif
 		std::vector<ProcessedSeedHit> fakeSeeds;
 		WordSlice fakeSlice { WordConfiguration<Word>::AllZeros, WordConfiguration<Word>::AllZeros, std::numeric_limits<ScoreType>::max() };
 		auto nodeAllowanceVectors = getNodeAllowanceVectors(forbiddenNodes, numSlices);
 		for (size_t slice = 0; slice < numSlices; slice++)
 		{
 			int bandwidth = params.alignmentBandwidth;
-#ifndef NDEBUG
-			debugLastProcessedSlice = slice;
-			debugLastRowMinScore = lastSlice.minScore;
-#endif
 #ifdef SLICEVERBOSE
 			auto timeStart = std::chrono::system_clock::now();
 #endif
@@ -785,9 +772,6 @@ private:
 
 			if (newSlice.maxExactEndposScore < bestXScore - Xdropcutoff)
 			{
-#ifndef NDEBUG
-				debugLastProcessedSlice = slice-1;
-#endif
 				for (auto node : lastSlice.scores)
 				{
 					assert(reusableState.previousBand[node.first]);

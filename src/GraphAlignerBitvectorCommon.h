@@ -15,10 +15,6 @@
 #include "GraphAlignerCommon.h"
 #include "ArrayPriorityQueue.h"
 
-#ifndef NDEBUG
-thread_local int debugLastRowMinScore;
-#endif
-
 template <typename LengthType, typename ScoreType, typename Word>
 class GraphAlignerBitvectorCommon
 {
