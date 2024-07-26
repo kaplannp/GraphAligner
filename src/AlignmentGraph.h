@@ -207,6 +207,7 @@ public:
 	static AlignmentGraph DummyGraph();
 	bool AllNodeNamesAreNumbers() const;
 private:
+public:
 	void makeDinodeIntermediateMapping();
 	void sparsenComponentNumbers();
 	void replaceIntermediateEdgesWithDinodes();
