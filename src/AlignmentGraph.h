@@ -28,9 +28,6 @@ private:
    */
   template<class Archive>
   void serialize(Archive& ar, const unsigned int version){
-	  ar & SPLIT_NODE_SIZE;
-	  ar & BP_IN_CHUNK;
-    ar &CHUNKS_IN_NODE;
     ar & bpSize;
     ar & firstAmbiguous;
     ar & finalized;

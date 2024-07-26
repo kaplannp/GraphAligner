@@ -125,8 +125,8 @@ public:
         Xdropcutoff(params.Xdropcutoff),
         multimapScoreFraction(params.multimapScoreFraction),
         clipAmbiguousEnds(params.clipAmbiguousEnds),
-        discardCigar(params.discardCigar),
-        maxTraceCount(params.maxTraceCount)
+        maxTraceCount(params.maxTraceCount),
+        discardCigar(params.discardCigar)
     {
     }
 		const LengthType alignmentBandwidth;
