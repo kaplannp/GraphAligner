@@ -15,6 +15,8 @@
 #include "GraphAlignerGAFAlignment.h"
 #include "GraphAlignerBitvectorBanded.h"
 
+#include "loadParams.h"
+
 #include "nlohmann/json.hpp"
 
 using nJson = nlohmann::json;
@@ -483,10 +485,13 @@ private:
 		return bvAligner.getBacktraceFullStart(seq, params.Xdropcutoff, reusableState.bigraphNodeForbiddenSpans, reusableState);
 	}
 
+#define INPUT_DIR "/data2/kaplannp/Genomics/DumpTrue"
   //zkn this is the function that calls the ROI, so this is the place where we
   //dump the important arguments
 	std::vector<OnewayTrace> getMultiseedTraces(const std::string& sequence, const std::string& revSequence, const std::vector<ProcessedSeedHit>& seedHits, AlignerGraphsizedState& reusableState, std::vector<ScoreType>& sliceMaxScores) const
 	{
+
+
     const std::string dumpDir = "Dump";
     const std::string inputDir = dumpDir + "/Inputs";
     const std::string outDir = dumpDir + "/Out";
@@ -513,6 +518,45 @@ private:
       typename Common::SerializableParams p(bvAligner.params);
       graphDumpArchive << p;//bvAligner.params;//bvAligner.getParams();
     }
+
+
+
+    int numInputs = ld_num_inputs(INPUT_DIR);
+    std::pair<Params*, SerializableParams*> paramPair = loadParams(INPUT_DIR);
+    Params* params = std::get<0>(paramPair);
+    std::vector<std::string>* seqs = loadSequences(INPUT_DIR);
+    std::vector<std::string>* revSeqs = getRevSequence(seqs);
+    std::vector<std::vector<ProcessedSeedHit>>* seedHitVecs = 
+        loadSeedHits(INPUT_DIR, numInputs);
+    //ReusableState* reusableStateLoaded = getReusableState(params);
+    std::vector<std::vector<int64_t>>* maxScoresVec = 
+        getSliceMaxScores(seqs, numInputs);
+    //std::vector<std::vector<int64_t>*>* maxScoresVec2 = 
+    //    getSliceMaxScores2(seqs, numInputs);
+    //load inputs
+    std::string& seq = (*seqs)[dumpIndex];
+    std::string& revSeq = (*revSeqs)[dumpIndex];
+    std::vector<ProcessedSeedHit>& seedHitsLoaded = (*seedHitVecs)[dumpIndex];
+    //std::vector<int64_t>& sliceMaxScoresLoaded = (*maxScoresVec)[dumpIndex];
+    //std::vector<int64_t> sliceMaxScoresLoaded;
+    //sliceMaxScoresLoaded.resize(seq.size()/WORD_SIZE+2,0);
+		std::vector<ScoreType> sliceMaxScoresLoaded;
+		sliceMaxScoresLoaded.resize(sequence.size() / WordConfiguration<Word>::WordSize + 2, 0);
+    //std::vector<int64_t>& sliceMaxScoresLoaded2 = *((*maxScoresVec)[dumpIndex]);
+    //reusableState.clear();
+    std::cerr << "max score size " << sliceMaxScores.size() << std::endl;
+    std::cerr << "max score loaded size " << sliceMaxScoresLoaded.size() << std::endl;
+    std::cerr << "equivalent? " << (sliceMaxScores == sliceMaxScoresLoaded) << std::endl;
+    //for (int i = 0; i < sliceMaxScores.size(); i++){
+    //  std::cerr << "max score pair is " << sliceMaxScores[i] << " loaded " << sliceMaxScoresLoaded[i] << std::endl;
+    //}
+    //get the trace (only actual computation line in this function)
+    //std::vector<OnewayTrace> trace = bvAligner.getMultiseedTraces(seq, revSeq, seedHitsLoaded, reusableState, sliceMaxScoresLoaded);
+    std::vector<OnewayTrace> trace = bvAligner.getMultiseedTraces(sequence, revSequence, seedHits, reusableState, sliceMaxScoresLoaded);
+
+
+
+
     //dump inputs (reads)
     static std::ofstream readDumpFile(inputDir+"/reads.txt");
     //dump inputs (clusters)
@@ -520,8 +564,6 @@ private:
     //output (traces)
     static std::ofstream traceDumpFile(outDir+"/traces.txt");
 
-    //get the trace (only actual computation line in this function)
-    std::vector<OnewayTrace> trace = bvAligner.getMultiseedTraces(sequence, revSequence, seedHits, reusableState, sliceMaxScores);
 
     //dump read inputs
     readDumpFile << dumpIndex << ": " << sequence << std::endl;
@@ -546,6 +588,8 @@ private:
     traceDumpFile << traceStr << std::endl;
 
     dumpIndex++;
+    std::cerr << "num seed hits is " << seedHits.size() << std::endl;
+    std::cerr << "num traces is " << trace.size() << std::endl;
 		return trace;
 	}
 
