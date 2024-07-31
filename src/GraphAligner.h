@@ -487,9 +487,7 @@ private:
   //dump the important arguments
 	std::vector<OnewayTrace> getMultiseedTraces(const std::string& sequence, const std::string& revSequence, const std::vector<ProcessedSeedHit>& seedHits, AlignerGraphsizedState& reusableState, std::vector<ScoreType>& sliceMaxScores) const
 	{
-    //get the trace (only actual computation line in this function)
-    std::vector<OnewayTrace> trace = bvAligner.getMultiseedTraces(sequence, revSequence, seedHits, reusableState, sliceMaxScores);
-
+    //initialize the dumping variables, files, etc
     const std::string dumpDir = "Dump";
     const std::string inputDir = dumpDir + "/Inputs";
     const std::string outDir = dumpDir + "/Out";
@@ -542,6 +540,13 @@ private:
       maxScoreDumpFile << val << ",";
     }
     maxScoreDumpFile << std::endl;
+
+
+
+    //RUN THE KERNEL. THIS IS THE ONLY LINE OF REAL COMPUTATION
+    std::vector<OnewayTrace> trace = bvAligner.getMultiseedTraces(sequence, revSequence, seedHits, reusableState, sliceMaxScores);
+
+
 
     //dump traces to file
     nJson traceJson;
