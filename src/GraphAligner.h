@@ -487,6 +487,9 @@ private:
   //dump the important arguments
 	std::vector<OnewayTrace> getMultiseedTraces(const std::string& sequence, const std::string& revSequence, const std::vector<ProcessedSeedHit>& seedHits, AlignerGraphsizedState& reusableState, std::vector<ScoreType>& sliceMaxScores) const
 	{
+    //get the trace (only actual computation line in this function)
+    std::vector<OnewayTrace> trace = bvAligner.getMultiseedTraces(sequence, revSequence, seedHits, reusableState, sliceMaxScores);
+
     const std::string dumpDir = "Dump";
     const std::string inputDir = dumpDir + "/Inputs";
     const std::string outDir = dumpDir + "/Out";
@@ -517,11 +520,10 @@ private:
     static std::ofstream readDumpFile(inputDir+"/reads.txt");
     //dump inputs (clusters)
     static std::ofstream clusterDumpFile(inputDir+"/clusters.json");
+    //dump inputs (max score vectors)
+    static std::ofstream maxScoreDumpFile(inputDir+"/maxScores.txt");
     //output (traces)
-    static std::ofstream traceDumpFile(outDir+"/traces.txt");
-
-    //get the trace (only actual computation line in this function)
-    std::vector<OnewayTrace> trace = bvAligner.getMultiseedTraces(sequence, revSequence, seedHits, reusableState, sliceMaxScores);
+    static std::ofstream traceDumpFile(outDir+"/traces.json");
 
     //dump read inputs
     readDumpFile << dumpIndex << ": " << sequence << std::endl;
@@ -534,6 +536,12 @@ private:
     }
     //2 is for indent width. pretty printing
     clusterDumpFile << clusterJson.dump(2) << std::endl;
+    //dump max score vectors
+    maxScoreDumpFile << dumpIndex << ": ";
+    for (int64_t val : sliceMaxScores){
+      maxScoreDumpFile << val << ",";
+    }
+    maxScoreDumpFile << std::endl;
 
     //dump traces to file
     nJson traceJson;
