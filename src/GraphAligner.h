@@ -495,6 +495,13 @@ private:
     const std::string outDir = dumpDir + "/Out";
     static int dumpIndex = 0;
     std::string stager ="";
+
+    static int numInputs;
+    static std::vector<std::string>* seqs;
+    static std::vector<std::string>* revSeqs;
+    static std::vector<std::vector<ProcessedSeedHit>>* seedHitVecs;
+    static std::pair<Params*, SerializableParams*> paramPair;
+    static std::vector<std::vector<int64_t>>* maxScoresVec;
     if (dumpIndex == 0){
       bool failed = false;
       //initialize the directories if this is the first time in the function
@@ -515,20 +522,17 @@ private:
       boost::archive::text_oarchive graphDumpArchive(graphDumpFile);
       typename Common::SerializableParams p(bvAligner.params);
       graphDumpArchive << p;//bvAligner.params;//bvAligner.getParams();
+
+      numInputs = ld_num_inputs(INPUT_DIR);
+      seqs = loadSequences(INPUT_DIR);
+      revSeqs = getRevSequence(seqs);
+      seedHitVecs = loadSeedHits(INPUT_DIR, numInputs);
+      paramPair = loadParams(INPUT_DIR);
+      maxScoresVec = getSliceMaxScores(INPUT_DIR, numInputs);
     }
 
-
-
-    int numInputs = ld_num_inputs(INPUT_DIR);
-    std::pair<Params*, SerializableParams*> paramPair = loadParams(INPUT_DIR);
     Params* params = std::get<0>(paramPair);
-    std::vector<std::string>* seqs = loadSequences(INPUT_DIR);
-    std::vector<std::string>* revSeqs = getRevSequence(seqs);
-    std::vector<std::vector<ProcessedSeedHit>>* seedHitVecs = 
-        loadSeedHits(INPUT_DIR, numInputs);
     //ReusableState* reusableStateLoaded = getReusableState(params);
-    std::vector<std::vector<int64_t>>* maxScoresVec = 
-        getSliceMaxScores(seqs, numInputs);
     //std::vector<std::vector<int64_t>*>* maxScoresVec2 = 
     //    getSliceMaxScores2(seqs, numInputs);
     //load inputs
@@ -538,19 +542,33 @@ private:
     //std::vector<int64_t>& sliceMaxScoresLoaded = (*maxScoresVec)[dumpIndex];
     //std::vector<int64_t> sliceMaxScoresLoaded;
     //sliceMaxScoresLoaded.resize(seq.size()/WORD_SIZE+2,0);
-		std::vector<ScoreType> sliceMaxScoresLoaded;
-		sliceMaxScoresLoaded.resize(sequence.size() / WordConfiguration<Word>::WordSize + 2, 0);
+		std::vector<ScoreType> sliceMaxScoresLoaded = (*maxScoresVec)[dumpIndex];
     //std::vector<int64_t>& sliceMaxScoresLoaded2 = *((*maxScoresVec)[dumpIndex]);
     //reusableState.clear();
-    std::cerr << "max score size " << sliceMaxScores.size() << std::endl;
-    std::cerr << "max score loaded size " << sliceMaxScoresLoaded.size() << std::endl;
-    std::cerr << "equivalent? " << (sliceMaxScores == sliceMaxScoresLoaded) << std::endl;
     //for (int i = 0; i < sliceMaxScores.size(); i++){
     //  std::cerr << "max score pair is " << sliceMaxScores[i] << " loaded " << sliceMaxScoresLoaded[i] << std::endl;
     //}
     //get the trace (only actual computation line in this function)
-    //std::vector<OnewayTrace> trace = bvAligner.getMultiseedTraces(seq, revSeq, seedHitsLoaded, reusableState, sliceMaxScoresLoaded);
-    std::vector<OnewayTrace> trace = bvAligner.getMultiseedTraces(sequence, revSequence, seedHits, reusableState, sliceMaxScoresLoaded);
+    std::cerr << "equivalence " << (sliceMaxScores == sliceMaxScoresLoaded) << std::endl;
+    if (sliceMaxScores != sliceMaxScoresLoaded){
+      for (int i =0; i < sliceMaxScores.size(); i++){
+        if (sliceMaxScores[i] != sliceMaxScoresLoaded[i]){
+
+          std::cerr << i << " v[i]=" << sliceMaxScores[i] << " and loaded[i]=" << sliceMaxScoresLoaded[i] << std::endl;
+          std::cerr << "vSize=" << sliceMaxScores.size() << " and loadedSize=" << sliceMaxScoresLoaded.size() << std::endl;
+        }
+      }
+    }
+    //dump inputs (max score vectors)
+    static std::ofstream maxScoreDumpFile(inputDir+"/maxScores.txt");
+    //dump max score vectors
+    maxScoreDumpFile << dumpIndex << ": ";
+    for (int64_t val : sliceMaxScores){
+      maxScoreDumpFile << val << ",";
+    }
+
+    std::vector<OnewayTrace> trace = bvAligner.getMultiseedTraces(seq, revSeq, seedHitsLoaded, reusableState, sliceMaxScores);
+    //std::vector<OnewayTrace> trace = bvAligner.getMultiseedTraces(sequence, revSequence, seedHits, reusableState, sliceMaxScoresLoaded);
 
 
 
@@ -560,7 +578,7 @@ private:
     //dump inputs (clusters)
     static std::ofstream clusterDumpFile(inputDir+"/clusters.json");
     //dump inputs (max score vectors)
-    static std::ofstream maxScoreDumpFile(inputDir+"/maxScores.txt");
+    static std::ofstream maxScoreDumpFileLoaded(inputDir+"/maxScoresLoaded.txt");
     //output (traces)
     static std::ofstream traceDumpFile(outDir+"/traces.json");
 
@@ -575,12 +593,13 @@ private:
     }
     //2 is for indent width. pretty printing
     clusterDumpFile << clusterJson.dump(2) << std::endl;
-    //dump max score vectors
-    maxScoreDumpFile << dumpIndex << ": ";
-    for (int64_t val : sliceMaxScores){
-      maxScoreDumpFile << val << ",";
-    }
     maxScoreDumpFile << std::endl;
+    //copy for the loaded
+    maxScoreDumpFileLoaded << dumpIndex << ": ";
+    for (int64_t val : sliceMaxScoresLoaded){
+      maxScoreDumpFileLoaded << val << ",";
+    }
+    maxScoreDumpFileLoaded << std::endl;
 
     //dump traces to file
     nJson traceJson;

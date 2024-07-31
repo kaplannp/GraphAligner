@@ -71,14 +71,12 @@ ReusableState* getReusableState(Common::Params* params);
 
 /*
  * Get max scores for slices
- * @param std::string seq the read
- * @returns the max scores
+ * @param std::string the input directory
+ * @param the number of inputs
+ * @returns vector<vector<int64_t> vector of max scores
  */
 std::vector<std::vector<int64_t>>* getSliceMaxScores(
-    std::vector<std::string>* seqs, size_t numInputs);
-
-std::vector<std::vector<int64_t>*>* getSliceMaxScores2(
-    std::vector<std::string>* seqs, size_t numInputs);
+    std::string inputDir, size_t numInputs);
 
 /*
  * Counts the number of reads to process

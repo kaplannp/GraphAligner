@@ -87,24 +87,23 @@ ReusableState* getReusableState(Common::Params* params){
 }
 
 
-std::vector<std::vector<int64_t>>* getSliceMaxScores(
-    std::vector<std::string>* seqs, size_t numInputs){
+std::vector<std::vector<int64_t>>* getSliceMaxScores(std::string inputDir,
+                                                     size_t numInputs){
 
   std::vector<std::vector<int64_t>>* sliceMaxScores = 
     new std::vector<std::vector<int64_t>>(numInputs);
-  for (int i = 0; i < seqs->size(); i++){
-    (*sliceMaxScores)[i].resize((*seqs)[i].size() / WORD_SIZE + 2, 0);
-  }
-  return sliceMaxScores;
-}
-
-std::vector<std::vector<int64_t>*>* getSliceMaxScores2(
-    std::vector<std::string>* seqs, size_t numInputs){
-
-  std::vector<std::vector<int64_t>*>* sliceMaxScores = 
-    new std::vector<std::vector<int64_t>*>(numInputs);
-  for (int i = 0; i < seqs->size(); i++){
-    (*sliceMaxScores)[i]->resize((*seqs)[i].size() / WORD_SIZE + 2, 0);
+  std::string lineNum("");
+  std::string line("");
+  std::string junk("");
+  std::ifstream f(inputDir+"/Inputs/maxScores.txt");
+  while (std::getline(f,line)) {
+    std::string val("");
+    std::istringstream lineStream(line);
+    std::getline(lineStream, lineNum, ':');
+    std::getline(lineStream, junk, ' ');
+    while ( std::getline(lineStream, val, ',') ){
+      (*sliceMaxScores)[std::stoll(lineNum)].push_back(std::stoll(val));
+    }
   }
   return sliceMaxScores;
 }
