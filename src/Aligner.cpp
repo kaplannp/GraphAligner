@@ -20,8 +20,6 @@
 #include "AlignmentSelection.h"
 #include "DiploidHeuristic.h"
 
-#include "vtuneConfiguration.h"
-
 struct Seeder
 {
 	enum Mode
@@ -565,11 +563,6 @@ void runComponentMappings(const AlignmentGraph& alignmentGraph, const DiploidHeu
         //zkn there are two versions. this is the one I think we use because it
         //includes seeding
 				auto alntimeStart = std::chrono::system_clock::now();
-#ifdef VTUNE_ANALYSIS
-  #if (ROI == 2)
-        __itt_resume();
-  #endif
-#endif
 				std::string paddedSequence = fastq->sequence;
 				while (paddedSequence.size() % 64 != 0)
 				{
@@ -578,11 +571,6 @@ void runComponentMappings(const AlignmentGraph& alignmentGraph, const DiploidHeu
 				alignments = AlignClusters(alignmentGraph, fastq->seq_id, paddedSequence, params.alignmentBandwidth, params.maxCellsPerSlice, !params.verboseMode, processedSeeds, reusableState, params.preciseClippingIdentityCutoff, params.Xdropcutoff, params.multimapScoreFraction, params.clipAmbiguousEnds, params.maxTraceCount);
 				AlignmentSelection::RemoveDuplicateAlignments(alignmentGraph, alignments.alignments);
 				AlignmentSelection::AddMappingQualities(alignments.alignments);
-#ifdef VTUNE_ANALYSIS
-  #if (ROI == 2)
-        __itt_pause();
-  #endif
-#endif
 				auto alntimeEnd = std::chrono::system_clock::now();
 				alntimems = std::chrono::duration_cast<std::chrono::milliseconds>(alntimeEnd - alntimeStart).count();
 				if (params.useDiploidHeuristic)
@@ -996,11 +984,6 @@ void alignReads(AlignerParams params)
 	std::thread correctedWriterThread { [file=params.outputCorrectedFile, &outputCorrected, &deallocAlns, &allThreadsDone, &correctedWriteDone, verboseMode=params.verboseMode, uncompressed=!params.compressCorrected]() { if (file != "") consumeBytesAndWrite(file, outputCorrected, deallocAlns, allThreadsDone, correctedWriteDone, verboseMode, uncompressed); else correctedWriteDone = true; } };
 	std::thread correctedClippedWriterThread { [file=params.outputCorrectedClippedFile, &outputCorrectedClipped, &deallocAlns, &allThreadsDone, &correctedClippedWriteDone, verboseMode=params.verboseMode, uncompressed=!params.compressClipped]() { if (file != "") consumeBytesAndWrite(file, outputCorrectedClipped, deallocAlns, allThreadsDone, correctedClippedWriteDone, verboseMode, uncompressed); else correctedClippedWriteDone = true; } };
 
-#ifdef VTUNE_ANALYSIS
-  #if (ROI == 1)
-        __itt_resume();
-  #endif
-#endif
 	auto timeStart = std::chrono::system_clock::now();
 	for (size_t i = 0; i < params.numThreads; i++)
 	{
@@ -1014,11 +997,6 @@ void alignReads(AlignerParams params)
 	auto timeEnd = std::chrono::system_clock::now();
 	size_t time = std::chrono::duration_cast<std::chrono::milliseconds>(timeEnd - timeStart).count();
   std::cerr << "zkn all alignment took " << time << "ms" << std::endl;
-#ifdef VTUNE_ANALYSIS
-  #if (ROI == 1)
-        __itt_pause();
-  #endif
-#endif
 	assertSetNoRead("Postprocessing");
 
 	allThreadsDone = true;

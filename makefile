@@ -2,13 +2,13 @@ CWD:=$(shell pwd)
 $(shell export GA_HOME=$(pwd))
 PLATFORM=$(shell uname -s)
 GPP=$(CXX)
-CPPFLAGS=-Wall -Wextra -std=c++17 -O3 -g -Iconcurrentqueue -IBBHash -Izstr/src -Iparallel-hashmap/parallel_hashmap/ `pkg-config --cflags protobuf` `pkg-config --cflags libsparsehash` -Wno-unused-parameter -IMEMfinder/src -I`jemalloc-config --includedir` -I/opt/intel/oneapi/vtune/latest/include -I/usr/local/include/ -I$(CWD)/include/json/include
+CPPFLAGS=-Wall -Wextra -std=c++17 -O3 -g -Iconcurrentqueue -IBBHash -Izstr/src -Iparallel-hashmap/parallel_hashmap/ `pkg-config --cflags protobuf` `pkg-config --cflags libsparsehash` -Wno-unused-parameter -IMEMfinder/src -I`jemalloc-config --includedir`  -I/usr/local/include/ -I$(CWD)/include/json/include -I$(BOOST_INCLUDE) 
 
 ODIR=obj
 BINDIR=bin
 SRCDIR=src
 
-LIBS=-lm -lz -lboost_program_options `pkg-config --libs protobuf` -lsdsl -L/usr/local/lib -L/opt/intel/oneapi/vtune/latest/lib64 -littnotify -lboost_serialization
+LIBS=-L$(BOOST_LIB) -lm -lz -lboost_program_options `pkg-config --libs protobuf` -lsdsl -L/usr/local/lib -lboost_serialization
 JEMALLOCFLAGS= -L`jemalloc-config --libdir` -Wl,-rpath,`jemalloc-config --libdir` -Wl,-Bstatic -ljemalloc -Wl,-Bdynamic `jemalloc-config --libs`
 
 _DEPS = vg.pb.h fastqloader.h GraphAlignerWrapper.h vg.pb.h BigraphToDigraph.h stream.hpp Aligner.h ThreadReadAssertion.h AlignmentGraph.h CommonUtils.h GfaGraph.h ReadCorrection.h MinimizerSeeder.h AlignmentSelection.h EValue.h MEMSeeder.h DNAString.h DiploidHeuristic.h
