@@ -1,1 +1,3 @@
 export GA_HOME=$(pwd)
+export BOOST_INCLUDE=$(pwd)/include
+export BOOST_LIB=$(pwd)/lib
