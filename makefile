@@ -2,6 +2,8 @@ CWD:=$(shell pwd)
 $(shell export GA_HOME=$(pwd))
 PLATFORM=$(shell uname -s)
 GPP=$(CXX)
+BOOST_INCLUDE=$(CONDA_PREFIX)/include
+BOOST_LIB=$(CONDA_PREFIX)/lib
 CPPFLAGS=-Wall -Wextra -std=c++17 -O3 -g  -I$(BOOST_INCLUDE) -Iconcurrentqueue -IBBHash -Izstr/src -Iparallel-hashmap/parallel_hashmap/ `pkg-config --cflags protobuf` `pkg-config --cflags libsparsehash` -Wno-unused-parameter -IMEMfinder/src -I`jemalloc-config --includedir` -I$(BOOST_INCLUDE) -I$(CWD)/include/json/include 
 
 ODIR=obj
